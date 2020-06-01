@@ -1,13 +1,16 @@
-$fn = 100;
+//@param image(string) Fontawesome icon name
+image = "home";
+//@param category(string) Fotawesome icon category, eg. solid, brands, regular
+category = "solid";
 
-svg_path = "svg/solid/home.svg";
+svg_path = str("svg/",category,"/",image,".svg");
+$fn = 100;
 
 linear_extrude(2) {
     resize([16, 16, 2])
     import(svg_path, center = true);
 }
 
-//translate([-12, -12, 0])
 union() {
     difference() {
         cylinder(2, 12, 12);

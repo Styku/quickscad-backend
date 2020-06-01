@@ -12,7 +12,7 @@ cors = CORS(api)
 api.config['CORS_HEADERS'] = 'Content-Type'
 
 def parse_script_params(script_path):
-    read_params = re.compile(r'//\s*@param\s(\w+)\s*\((\w+)\)\s+(.*)\n+(\w+)\s*=\s*(.+);')
+    read_params = re.compile(r'//\s*@param\s(\w+)\s*\((\w+)\)\s+(.*)\n+(\w+)\s*=\s*\"?([^\"]+)\"?;')
     with open(script_path, 'r') as file:
         script = file.read()
 
@@ -29,7 +29,18 @@ def parse_script_params(script_path):
 def stl():
     data = request.json
     script_path = script_root / (data['script'] + '.scad')
-    subprocess.run(["openscad", "-o", "api_test.stl", "-D", 'category="{}";image="{}"'.format(data['category'], data['image']), str(script_path)])
+    args_list = []
+
+    for param in parse_script_params(script_path):
+        if param['var_name'] in data:
+            val = data[param['var_name']]
+            if param['type'] == 'string':
+                val = '"{}"'.format(val)
+            args_list.append('{}={}'.format(param['var_name'],val))
+
+    subprocess_args = ["openscad", "-o", "api_test.stl", "-D", ';'.join(args_list), str(script_path)]
+    print(subprocess_args)
+    subprocess.run(subprocess_args)
     return send_file('api_test.stl')
 
 @api.route('/render', methods=['POST'])

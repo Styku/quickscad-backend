@@ -2,8 +2,10 @@
 image = "home";
 //@param Category(string) Fontawesome icon category, eg. solid, brands, regular
 category = "solid";
-//@param Radious(float) Outside radious of the keychain
-R = 12;
+//@param Height(float) Height of the keychain
+height = 40;
+//@param Width(float) Width of the keychain
+width = 16;
 //@param Thickness(float) Thickness of the keychain
 h = 1.5;
 
@@ -12,17 +14,17 @@ $fn = 100;
 H = h + h/3;
 
 linear_extrude(2) {
-    resize([16, 16, H])
+    translate([8, width/2]) resize([12, 12, H])
     import(svg_path, center = true);
 }
 
 union() {
     difference() {
-        cylinder(H, R, R);
-        cylinder(H + 0.1, R-1, R - 1); //+0.1 is for more accurate quick rendering
+        cube([height, width, H]);
+        translate([1, 1, 0]) cube([height-2, width-2, H+0.1]);; //+0.1 is for more accurate quick rendering
     }
     difference() { 
-        cylinder(h, R, R);
-        translate([0, R-2, 0]) cylinder(h + 0.1, 1.2, 1.2);
+        cube([height, width, h]);
+        translate([height-2.2, width-2.2, 0]) cylinder(h + 0.1, 1.2, 1.2);
     }
 }

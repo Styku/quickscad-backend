@@ -4,6 +4,7 @@ from pathlib import Path
 import subprocess
 import glob
 import re
+import base64
 
 script_root = Path('scad-scripts')
 
@@ -11,8 +12,15 @@ api = Flask(__name__)
 cors = CORS(api)
 api.config['CORS_HEADERS'] = 'Content-Type'
 
+def img_to_base64(img_path):
+    img = 'data:image/jpeg;base64,'
+    with open(img_path, 'rb') as image:
+        image_read = image.read()
+        img = 'data:image/jpeg;base64,{}'.format(base64.encodebytes(image_read).decode('ascii'))
+    return img
+
 def parse_script_params(script_path):
-    read_params = re.compile(r'//\s*@param\s(\w+)\s*\((\w+)\)\s+(.*)\n+(\w+)\s*=\s*\"?([^\"]+)\"?;')
+    read_params = re.compile(r'//\s*@param\s(\w+)\s*\((\w+)\)\s+(.*)\n+(\w+)\s*=\s*\"?([\w.-_]+)\"?;')
     with open(script_path, 'r') as file:
         script = file.read()
 
@@ -64,7 +72,10 @@ def script(name):
 @cross_origin()
 def scripts():
     scripts = [Path(p).stem for p in glob.glob('scad-scripts/*.scad')]
-    return jsonify(scripts)
+    ret = []
+    for script in scripts:
+        ret.append({'script': script, 'image': img_to_base64('scad-scripts/{}.png'.format(script))})
+    return jsonify(ret)
 
 if __name__ == '__main__':
     api.run()

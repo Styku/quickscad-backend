@@ -6,11 +6,9 @@ import glob
 import re
 import base64
 
-script_root = Path('scad-scripts')
-
-api = Flask(__name__)
-cors = CORS(api)
-api.config['CORS_HEADERS'] = 'Content-Type'
+app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 def img_to_base64(img_path):
     img = 'data:image/jpeg;base64,'
@@ -44,31 +42,31 @@ def make_args_list(script_params, request_data):
 def run_openscad(request_json, result='stl'):
     if result not in ('stl', 'png'):
         result = 'stl'
-    script_path = script_root / (request_json['script'] + '.scad')
+    script_path = Path('scad-scripts') / (request_json['script'] + '.scad')
     args = make_args_list(parse_script_params(script_path), request_json)
     output_file = 'out.{}'.format(result)
     subprocess_args = ["openscad", "-o", output_file, "-D", args, str(script_path)]
     subprocess.run(subprocess_args)
     return output_file
 
-@api.route('/stl', methods=['POST'])
+@app.route('/stl', methods=['POST'])
 @cross_origin()
 def stl():
     file = run_openscad(request.json, 'stl')
     return send_file(file)
 
-@api.route('/render', methods=['POST'])
+@app.route('/render', methods=['POST'])
 @cross_origin()
 def render():
     file = run_openscad(request.json, 'png')
     return send_file(file)
  
-@api.route('/script/<name>', methods=['GET'])
+@app.route('/script/<name>', methods=['GET'])
 @cross_origin()
 def script(name):
     return jsonify(params = parse_script_params('scad-scripts/{}.scad'.format(name)))
 
-@api.route('/script', methods=['GET'])
+@app.route('/script', methods=['GET'])
 @cross_origin()
 def scripts():
     scripts = [Path(p).stem for p in glob.glob('scad-scripts/*.scad')]
@@ -78,4 +76,4 @@ def scripts():
     return jsonify(ret)
 
 if __name__ == '__main__':
-    api.run()
+    app.run()

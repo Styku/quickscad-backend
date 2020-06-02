@@ -23,49 +23,48 @@ def parse_script_params(script_path):
 
     return params
 
+def make_args_list(script_params, request_data):
+    args_list = []
+    for param in script_params:
+            if param['var_name'] in request_data:
+                val = request_data[param['var_name']]
+                if param['type'] == 'string':
+                    val = '"{}"'.format(val)
+                args_list.append('{}={}'.format(param['var_name'],val))
+    return ';'.join(args_list)
+
+def run_openscad(request_json, result='stl'):
+    if result not in ('stl', 'png'):
+        result = 'stl'
+    script_path = script_root / (request_json['script'] + '.scad')
+    args = make_args_list(parse_script_params(script_path), request_json)
+    output_file = 'out.{}'.format(result)
+    subprocess_args = ["openscad", "-o", output_file, "-D", args, str(script_path)]
+    subprocess.run(subprocess_args)
+    return output_file
 
 @api.route('/stl', methods=['POST'])
 @cross_origin()
 def stl():
-    data = request.json
-    script_path = script_root / (data['script'] + '.scad')
-    args_list = []
-
-    for param in parse_script_params(script_path):
-        if param['var_name'] in data:
-            val = data[param['var_name']]
-            if param['type'] == 'string':
-                val = '"{}"'.format(val)
-            args_list.append('{}={}'.format(param['var_name'],val))
-
-    subprocess_args = ["openscad", "-o", "api_test.stl", "-D", ';'.join(args_list), str(script_path)]
-    print(subprocess_args)
-    subprocess.run(subprocess_args)
-    return send_file('api_test.stl')
+    file = run_openscad(request.json, 'stl')
+    return send_file(file)
 
 @api.route('/render', methods=['POST'])
 @cross_origin()
 def render():
-    data = request.json
-    script_path = script_root / (data['script'] + '.scad')
-    subprocess.run(["openscad", "-o", "render.png", "-D", 'category="{}";image="{}"'.format(data['category'], data['image']), str(script_path)])
-    return send_file('render.png')
+    file = run_openscad(request.json, 'png')
+    return send_file(file)
  
 @api.route('/script/<name>', methods=['GET'])
 @cross_origin()
 def script(name):
-    return jsonify(
-        params = parse_script_params('scad-scripts/{}.scad'.format(name))
-    )
+    return jsonify(params = parse_script_params('scad-scripts/{}.scad'.format(name)))
 
 @api.route('/script', methods=['GET'])
 @cross_origin()
 def scripts():
     scripts = [Path(p).stem for p in glob.glob('scad-scripts/*.scad')]
-    return jsonify(
-        scripts
-    )
-
+    return jsonify(scripts)
 
 if __name__ == '__main__':
     api.run()

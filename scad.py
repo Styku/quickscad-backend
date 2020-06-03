@@ -18,15 +18,26 @@ def img_to_base64(img_path):
     return img
 
 def parse_script_params(script_path):
-    read_params = re.compile(r'//\s*@param\s(\w+)\s*\((\w+)\)\s+(.*)\n+(\w+)\s*=\s*\"?([\w.-_]+)\"?;')
+    read_params = re.compile(r'//\s*@param\s([\w\s]+)\s*\((\w+)\)\s+(.*)\n+(\w+)\s*=\s*\"?([\w.-_]+)\"?;\s*(//\s*\[([0-9.]+):([0-9.]+)\])?(//\s*{([\w,\s]+)})?')
     with open(script_path, 'r') as file:
         script = file.read()
 
     params = []
 
     for m in read_params.finditer(script):
-        params.append({'name': m.group(1), 'type': m.group(2), 'description': m.group(3), 'var_name': m.group(4), 'value': m.group(5)})
-
+        params_dict = {
+            'name': m.group(1), 
+            'type': m.group(2), 
+            'description': m.group(3), 
+            'var_name': m.group(4), 
+            'value': m.group(5)
+        }
+        if m.group(7) and m.group(8):
+            params_dict['min'] = m.group(7)
+            params_dict['max'] = m.group(8)
+        if m.group(10):
+            params_dict['allowed'] = [s.strip() for s in m.group(10).split(',')]
+        params.append(params_dict)
     return params
 
 def make_args_list(script_params, request_data):

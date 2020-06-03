@@ -3,9 +3,9 @@ image = "home";
 //@param Category(string) Fontawesome icon category, eg. solid, brands, regular
 category = "solid";
 //@param Radious(float) Outside radious of the keychain
-R = 12;
+R = 12; // [10:20]
 //@param Thickness(float) Thickness of the keychain
-h = 1.5;
+h = 1.5; // [0.5:5]
 
 svg_path = str("svg/",category,"/",image,".svg");
 $fn = 100;

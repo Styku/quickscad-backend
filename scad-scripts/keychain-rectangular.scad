@@ -1,3 +1,8 @@
+/**
+    @name Rectangular keychain
+    @description Rectangular keychain with embossed logo
+*/
+
 //@param Icon(string) Fontawesome icon name
 image = "home";
 //@param Category(string) Fontawesome icon category, eg. solid, brands, regular

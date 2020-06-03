@@ -1,3 +1,8 @@
+/**
+    @name Plectrum
+    @description Guitar pick
+*/
+
 //@param Length(float) length of plectrum
 length = 30;
 //@param Thickness(float) thickness of plectrum

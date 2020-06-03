@@ -17,10 +17,25 @@ def img_to_base64(img_path):
         img = 'data:image/jpeg;base64,{}'.format(base64.encodebytes(image_read).decode('ascii'))
     return img
 
-def parse_script_params(script_path):
-    read_params = re.compile(r'//\s*@param\s([\w\s]+)\s*\((\w+)\)\s+(.*)\n+(\w+)\s*=\s*\"?([\w.-_]+)\"?;\s*(//\s*\[([0-9.]+):([0-9.]+)\])?(//\s*{([\w,\s]+)})?')
+def parse_script(script_path):
     with open(script_path, 'r') as file:
         script = file.read()
+
+    params = parse_script_params(script)
+    name = parse_script_metadata(script, 'name')
+    description = parse_script_metadata(script, 'description')
+    
+    return {'params': params, 'name': name, 'description': description}
+
+def parse_script_metadata(script, key):
+    regex = re.compile(r'@{}\s+(.+)'.format(key))
+    m = regex.search(script)
+    if m:
+        return m.group(1)
+    return None
+
+def parse_script_params(script):
+    read_params = re.compile(r'//\s*@param\s([\w\s]+)\s*\((\w+)\)\s+(.*)\n+(\w+)\s*=\s*\"?([\w.-_]+)\"?;\s*(//\s*\[([0-9.]+):([0-9.]+)\])?(//\s*{([\w,\s]+)})?')
 
     params = []
 
@@ -45,7 +60,7 @@ def make_args_list(script_params, request_data):
     for param in script_params:
             if param['var_name'] in request_data:
                 val = request_data[param['var_name']]
-                if param['type'] == 'string':
+                if param['type'] in ('string', 'category', 'image'):
                     val = '"{}"'.format(val)
                 args_list.append('{}={}'.format(param['var_name'],val))
     return ';'.join(args_list)
@@ -54,11 +69,20 @@ def run_openscad(request_json, result='stl'):
     if result not in ('stl', 'png'):
         result = 'stl'
     script_path = Path('scad-scripts') / (request_json['script'] + '.scad')
-    args = make_args_list(parse_script_params(script_path), request_json)
-    output_file = 'out.{}'.format(result)
-    subprocess_args = ["openscad", "-o", output_file, "-D", args, str(script_path)]
-    subprocess.run(subprocess_args)
+    with open(script_path, 'r') as file:
+        script = file.read()
+        args = make_args_list(parse_script_params(script), request_json)
+        output_file = 'out.{}'.format(result)
+        subprocess_args = ["openscad", "-o", output_file, "-D", args, str(script_path)]
+        subprocess.run(subprocess_args)
     return output_file
+
+def get_image_tree():
+    images = {}
+    for p in Path('scad-scripts/svg').iterdir():
+        if p.is_dir():
+            images[p.stem] = [img.stem for img in p.glob('*.svg')]
+    return images
 
 @app.route('/stl', methods=['POST'])
 @cross_origin()
@@ -69,13 +93,19 @@ def stl():
 @app.route('/render', methods=['POST'])
 @cross_origin()
 def render():
+    print(request.json)
     file = run_openscad(request.json, 'png')
     return send_file(file)
  
 @app.route('/script/<name>', methods=['GET'])
 @cross_origin()
 def script(name):
-    return jsonify(params = parse_script_params('scad-scripts/{}.scad'.format(name)))
+    return jsonify(parse_script('scad-scripts/{}.scad'.format(name)))
+
+@app.route('/images', methods=['GET'])
+@cross_origin()
+def images():
+    return jsonify(get_image_tree())
 
 @app.route('/script', methods=['GET'])
 @cross_origin()

@@ -1,6 +1,11 @@
-//@param Icon(string) Fontawesome icon name
+/**
+    @name Round keychain
+    @description Round keychain with embossed logo
+*/
+
+//@param Icon(image) Fontawesome icon name
 image = "home";
-//@param Category(string) Fontawesome icon category, eg. solid, brands, regular
+//@param Icon category(category) Fontawesome icon category, eg. solid, brands, regular
 category = "solid";
 //@param Radious(float) Outside radious of the keychain
 R = 12; // [10:20]

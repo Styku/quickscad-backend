@@ -1,3 +1,8 @@
+/**
+    @name Vase
+    @description Configurable spiral vase
+*/
+
 //@param Top diameter(float) Top Diameter in mm
 t=70;  // [5:200]
 

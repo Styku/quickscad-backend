@@ -60,7 +60,7 @@ def make_args_list(script_params, request_data):
     for param in script_params:
             if param['var_name'] in request_data:
                 val = request_data[param['var_name']]
-                if param['type'] in ('string', 'category', 'image'):
+                if param['type'] in ('string', 'image'):
                     val = '"{}"'.format(val)
                 args_list.append('{}={}'.format(param['var_name'],val))
     return ';'.join(args_list)
@@ -78,11 +78,13 @@ def run_openscad(request_json, result='stl'):
     return output_file
 
 def get_image_tree():
-    images = {}
+    images = []
+    categories = []
     for p in Path('scad-scripts/svg').iterdir():
         if p.is_dir():
-            images[p.stem] = [img.stem for img in p.glob('*.svg')]
-    return images
+            categories.append(p.stem)
+            images += ['{}/{}'.format(p.stem, img.stem) for img in p.glob('*.svg')]
+    return images, categories
 
 @app.route('/stl', methods=['POST'])
 @cross_origin()
@@ -105,7 +107,8 @@ def script(name):
 @app.route('/images', methods=['GET'])
 @cross_origin()
 def images():
-    return jsonify(get_image_tree())
+    images, categories = get_image_tree()
+    return jsonify({'images': images, 'categories': categories})
 
 @app.route('/script', methods=['GET'])
 @cross_origin()

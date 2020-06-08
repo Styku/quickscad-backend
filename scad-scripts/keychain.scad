@@ -3,21 +3,20 @@
     @description Round keychain with embossed logo
 */
 
-//@param Icon(image) Fontawesome icon name
-image = "home";
-//@param Icon category(category) Fontawesome icon category, eg. solid, brands, regular
-category = "solid";
+//@param Icon(image) Fontawesome icon
+image = "solid/home";
 //@param Radious(float) Outside radious of the keychain
 R = 12; // [10:20]
 //@param Thickness(float) Thickness of the keychain
 h = 1.5; // [0.5:5]
-
-svg_path = str("svg/",category,"/",image,".svg");
+//@param Logo size(float) Logo size
+logo = 16; // [0.5:20]
+svg_path = str("svg/",image,".svg");
 $fn = 100;
 H = h + h/3;
 
 linear_extrude(2) {
-    resize([16, 16, H])
+    resize([logo, logo, H])
     import(svg_path, center = true);
 }
 

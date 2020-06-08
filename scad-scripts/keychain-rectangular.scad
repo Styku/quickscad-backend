@@ -3,10 +3,8 @@
     @description Rectangular keychain with embossed logo
 */
 
-//@param Icon(string) Fontawesome icon name
-image = "home";
-//@param Category(string) Fontawesome icon category, eg. solid, brands, regular
-category = "solid";
+//@param Icon(image) Fontawesome icon
+image = "solid/home";
 //@param Height(float) Height of the keychain
 height = 40;
 //@param Width(float) Width of the keychain
@@ -14,7 +12,7 @@ width = 16;
 //@param Thickness(float) Thickness of the keychain
 h = 1.5;
 
-svg_path = str("svg/",category,"/",image,".svg");
+svg_path = str("svg/",image,".svg");
 $fn = 100;
 H = h + h/3;
 

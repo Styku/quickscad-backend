@@ -5,6 +5,9 @@ import subprocess
 import glob
 import re
 import base64
+import os
+import tempfile
+import uuid
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -68,14 +71,25 @@ def make_args_list(script_params, request_data):
 def run_openscad(request_json, result='stl'):
     if result not in ('stl', 'png'):
         result = 'stl'
+    fp = tempfile.NamedTemporaryFile(suffix='.{}'.format(result), mode='w+b')
+    temp_file_path = Path(tempfile.gettempdir()) / '{}.{}'.format(uuid.uuid4().hex, result)
     script_path = Path('scad-scripts') / (request_json['script'] + '.scad')
+
     with open(script_path, 'r') as file:
         script = file.read()
         args = make_args_list(parse_script_params(script), request_json)
-        output_file = 'out.{}'.format(result)
-        subprocess_args = ["openscad", "-o", output_file, "-D", args, str(script_path)]
+        subprocess_args = ["openscad", "-o", temp_file_path, "-D", args, str(script_path)]
         subprocess.run(subprocess_args)
-    return output_file
+    
+    with open(temp_file_path, 'rb') as temp_fp:
+        while True:
+            chunk = temp_fp.read(1024*4)
+            if not chunk:
+                break
+            fp.write(chunk)
+    os.remove(temp_file_path)
+    fp.seek(0)
+    return fp
 
 def get_image_tree():
     images = []
@@ -86,18 +100,11 @@ def get_image_tree():
             images += ['{}/{}'.format(p.stem, img.stem) for img in p.glob('*.svg')]
     return images, categories
 
-@app.route('/stl', methods=['POST'])
+@app.route('/out/<ext>', methods=['POST'])
 @cross_origin()
-def stl():
-    file = run_openscad(request.json, 'stl')
-    return send_file(file)
-
-@app.route('/render', methods=['POST'])
-@cross_origin()
-def render():
-    print(request.json)
-    file = run_openscad(request.json, 'png')
-    return send_file(file)
+def out(ext):
+    fp = run_openscad(request.json, ext)
+    return send_file(fp, as_attachment=True, attachment_filename='out.{}'.format(ext))
  
 @app.route('/script/<name>', methods=['GET'])
 @cross_origin()

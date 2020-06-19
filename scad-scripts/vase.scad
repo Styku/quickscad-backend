@@ -1,6 +1,8 @@
 /**
     @name Vase
     @description Configurable spiral vase
+	@author Eckerput
+	@url https://www.thingiverse.com/thing:86476
 */
 
 //@param Top diameter(float) Top Diameter in mm

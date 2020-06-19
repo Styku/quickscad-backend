@@ -27,8 +27,10 @@ def parse_script(script_path):
     params = parse_script_params(script)
     name = parse_script_metadata(script, 'name')
     description = parse_script_metadata(script, 'description')
-    
-    return {'params': params, 'source': script, 'name': name, 'description': description}
+    author = parse_script_metadata(script, 'author')
+    url = parse_script_metadata(script, 'url')
+
+    return {'params': params, 'source': script, 'name': name, 'description': description, 'author': author, 'url': url}
 
 def parse_script_metadata(script, key):
     regex = re.compile(r'@{}\s+(.+)'.format(key))

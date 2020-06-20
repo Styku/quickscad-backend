@@ -1,6 +1,7 @@
 /**
     @name Rectangular keychain
     @description Rectangular keychain with embossed logo
+    @tags keychain keys label
 */
 
 //@param Icon(image) Fontawesome icon

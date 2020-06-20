@@ -92,7 +92,7 @@ def run_openscad(request_json, result='stl'):
         script = file.read()
         args = make_args_list(parse_script_params(script), request_json)
         subprocess_args = ["openscad", "-o",
-                           temp_file_path, "-D", args, str(script_path)]
+                           temp_file_path, "--colorscheme", "Monotone", "-D", args, str(script_path)]
         subprocess.run(subprocess_args)
 
     with open(temp_file_path, 'rb') as temp_fp:

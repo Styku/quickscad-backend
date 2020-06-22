@@ -10,6 +10,9 @@ import tempfile
 import uuid
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
+
 
 def img_to_base64(img_path):
     img = 'data:image/jpeg;base64,'
@@ -115,23 +118,27 @@ def get_image_tree():
 
 
 @app.route('/out/<ext>', methods=['POST'])
+@cross_origin(origin='http://quickscad.styczen.site')
 def out(ext):
     fp = run_openscad(request.json, ext)
     return send_file(fp, as_attachment=True, attachment_filename='out.{}'.format(ext))
 
 
 @app.route('/script/<name>', methods=['GET'])
+@cross_origin(origin='http://quickscad.styczen.site')
 def script(name):
     return jsonify(parse_script('scad-scripts/{}.scad'.format(name)))
 
 
 @app.route('/images', methods=['GET'])
+@cross_origin(origin='http://quickscad.styczen.site')
 def images():
     images, categories = get_image_tree()
     return jsonify({'images': images, 'categories': categories})
 
 
 @app.route('/script', methods=['GET'])
+@cross_origin(origin='http://quickscad.styczen.site')
 def scripts():
     scripts = glob.glob('scad-scripts/*.scad')
     ret = []
